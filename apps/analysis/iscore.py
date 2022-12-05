@@ -1,7 +1,4 @@
 import pandas as pd
-import datetime as dt
-from ..divoc.models import DIVOCCase7DayAvg
-from .common import get_sample_peak, get_df_from_query, get_df_for_date
 
 def calc_iscore(cases, peak):
     if cases < 0.001:
@@ -45,31 +42,5 @@ def calc_iscore(cases, peak):
     score = 1. if score > 1. else score
     return score
 
-def get_iscore(as_of_date, location):
-    df = get_df_from_query(as_of_date, location)
-    cases = df.iloc[-1]['cases']
-    peak = df['cases'].max()
-    raw_iscore = 1. - cases / peak
-    iscore = calc_iscore(cases, peak)
-    return raw_iscore, iscore
-
-def get_row_iscore(row):
-    return calc_iscore(row['cases'], row['peak'])
-
-def get_iscore_timeseries(location):
-    df = get_df_from_query(location)
-    print(df)
-    # TODO: get peak values when ingesting!
-    df['peak'] = df.apply(lambda row: get_sample_peak(row, df), axis=1)
-    df['raw_iscore'] = 1. - df['cases'] / df['peak']
-    df['iscore'] = df.apply(lambda row: get_row_iscore(row), axis=1)
-    return df
-
-def get_iscores_for_date(as_of_date):
-    df = get_df_for_date(as_of_date)
-    df['case_date'] = pd.to_datetime(as_of_date)
-    # ERROR: This won't work = you already need to calculate peak!
-    df['peak'] = df.apply(lambda row: get_sample_peak(row, df), axis=1)
-    df['raw_iscore'] = 1. - df['cases'] / df['peak']
-    df['iscore'] = df.apply(lambda row: get_row_iscore(row), axis=1)
-    return df
+def calc_raw_iscore(cases, peak):
+    return 1. - cases/peak

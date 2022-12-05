@@ -1,10 +1,10 @@
 import pandas as pd
 
-def foo(row, df):
+def find_peak_at_each_date(row, df):
     subset = df[df['date'] <= row['date']]
     return subset['value'].max()
 
-def setup():
+def construct_peak_data():
     x = [
         ['2020-01-01',  5],
         ['2020-01-02',  7],
@@ -18,5 +18,11 @@ def setup():
     ]
     df = pd.DataFrame(x, columns=['date', 'value'])
     df['date'] = pd.to_datetime(df['date'])
-    df['peak'] = df.apply(lambda row: foo(row, df), axis=1)
+    df['peak'] = df.apply(lambda row: find_peak_at_each_date(row, df), axis=1)
     return df
+
+def test_get_peak():
+    df = construct_peak_data()
+    max_value = df['value'].max()
+    last_peak = df.iloc[-1]['peak']
+    assert last_peak == max_value

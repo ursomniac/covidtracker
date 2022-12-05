@@ -1,5 +1,8 @@
+import pandas as pd
 from django.db import models
 from django.utils.translation import gettext as _
+from apps.divoc.models import DIVOCCase7DayAvg, DIVOCCaseTotal
+from apps.vaccine.models import USVaccination
 
 COUNTRY_CHOICES = [
     ('US', 'USA'),
@@ -59,7 +62,58 @@ class StateRegionAbstract(models.Model):
         return self.name
 
 class StateRegion(StateRegionAbstract):
-    pass
+    
+    @property
+    def avg_time_series(self):
+        qs = DIVOCCase7DayAvg.objects.filter(location=self.name)
+        return qs
+
+    @property
+    def avg_dataframe(self):
+        time_series = self.avg_time_series
+        df = pd.DataFrame.from_records(
+            time_series.values_list(
+                'case_date', 'cases', 'peak', 'iscore', 'iscore_raw', 'rscore', 'nscore', 'vscore'
+            )
+        )
+        df.columns = ['case_date', 'cases', 'peak', 'iscore', 'iscore_raw', 'rscore', 'nscore', 'vscore']
+        return df
+
+    @property
+    def total_cases_time_series(self):
+        qs = DIVOCCaseTotal.objects.filter(location=self.name)
+        return qs
+
+    @property
+    def total_cases_dataframe(self):
+        time_series = self.total_cases_time_series
+        df = pd.DataFrame.from_records(
+            time_series.values_list('case_date', 'cases')
+        )
+        df.columns = ['case_date', 'cases']
+        return df
+
+    @property
+    def vaccination_time_series(self):
+        qs = USVaccination.objects.filter(location=self.name)
+        return qs
+
+    @property
+    def vaccination_dataframe(self):
+        time_series = self.vaccination_time_series
+        try:
+            df = pd.DataFrame.from_records(
+                time_series.values_list(
+                    'sample_date',
+                    'people_vaccinated_per_hundred',
+                    'people_fully_vaccinated_per_hundred',
+                    'total_boosters_per_hundred'
+                )
+            )
+            df.columns = ['case_date', 'vax_1', 'vax_2', 'vax_booster']
+        except:
+            return None
+        return df
 
     class Meta:
         ordering = ['-country', 'name']

@@ -1,6 +1,5 @@
 from django.db import models
 from django.utils.translation import gettext as _
-from ..meta.models import StateRegion
 
 class USVaccination(models.Model):
     location = models.CharField (
@@ -50,11 +49,6 @@ class USVaccination(models.Model):
     share_doses_used
     """
 
-    @property 
-    def location_info(self):
-        state = StateRegion.objects.filter(name=self.location).first()
-        return state
-    
     def __str__(self):
         p1 = f"{self.people_vaccinated_per_hundred}%" if self.people_vaccinated_per_hundred is not None else None
         p2 = f"{self.people_fully_vaccinated_per_hundred}%" if self.people_fully_vaccinated_per_hundred is not None else None
